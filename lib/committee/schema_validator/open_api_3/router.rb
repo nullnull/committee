@@ -1,6 +1,8 @@
 module Committee
   class SchemaValidator::OpenAPI3::Router
     def initialize(schema, validator_option)
+      @schema = schema
+      @validator_option = validator_option
       # TODO: implements
     end
 
