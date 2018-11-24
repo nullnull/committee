@@ -1,6 +1,6 @@
 require_relative "../../test_helper"
 
-describe Committee::SchemaValidator::OpenAPI3::StringParamsCoercer do
+describe Committee::SchemaValidator::OpenAPI3::ParameterObjectCoercer do
   before do
     path = '/string_params_coercer'
     method = 'get'
@@ -137,6 +137,6 @@ describe Committee::SchemaValidator::OpenAPI3::StringParamsCoercer do
   end
 
   def call(data)
-    Committee::SchemaValidator::OpenAPI3::StringParamsCoercer.new(data, @operation_object, @validator_option).call!
+    @operation_object.coerce_query_parameter_value(data, @validator_option)
   end
 end

@@ -10,18 +10,16 @@ module Committee
       @path_params = path_params
     end
 
-    def coerce_query_parameter_object(name, value)
-      query_parameter_object = query_parameters[name]
-      return [nil, false] unless query_parameter_object
-
-      coerce_value(value, query_parameter_object)
+    def coerce_parameter_value(value, parameter_object)
+      coerce_value(value, parameter_object)
     end
 
-    def coerce_path_parameter_object(name, value)
-      path_parameter_object = path_parameters[name]
-      return [nil, false] unless path_parameter_object
+    def coerce_path_parameter_value(validator_option)
+      coerce_parameters(@path_params, path_parameters, validator_option)
+    end
 
-      coerce_value(value, path_parameter_object)
+    def coerce_query_parameter_value(parameter, validator_option)
+      coerce_parameters(parameter, query_parameters, validator_option)
     end
 
     def validate_request_params(params)
@@ -58,6 +56,21 @@ module Committee
     end
 
     private
+
+    def coerce_parameters(parameters, parameter_object_hash, validator_option)
+      Committee::SchemaValidator::OpenAPI3::ParameterObjectCoercer.new(parameters,
+                                                                       parameter_object_hash,
+                                                                       self,
+                                                                       validator_option).call!
+    end
+
+    def query_parameters
+      @query_parameters ||= oas_parser_endpoint.query_parameters.map{ |parameter| [parameter.name, parameter] }.to_h
+    end
+
+    def path_parameters
+      @path_parameters ||= oas_parser_endpoint.path_parameters.map{ |parameter| [parameter.name, parameter] }.to_h
+    end
 
     def validate_get_request_params(params)
       # TODO: check path parameter
@@ -188,14 +201,6 @@ module Committee
     def request_body_properties
       # TODO: use original format
       @request_body_properties ||= oas_parser_endpoint.request_body.properties_for_format('application/json').map{ |po| [po.name, po]}.to_h
-    end
-
-    def query_parameters
-      @query_parameters ||= oas_parser_endpoint.query_parameters.map{ |parameter| [parameter.name, parameter] }.to_h
-    end
-
-    def path_parameters
-      @path_parameters ||= oas_parser_endpoint.path_parameters.map{ |parameter| [parameter.name, parameter] }.to_h
     end
 
     def coerce_value(value, query_parameter_object)
